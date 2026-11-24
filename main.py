@@ -16,7 +16,9 @@ TEXT = (
 
 
 def validate_text(text):
-    """Gate: 1-200 chars, single line, not whitespace-only, no control chars.
+    """Gate: 1-200 chars, single line, not whitespace-only, no control or
+    non-printable chars (C0, DEL, C1, zero-width/BOM and other Unicode
+    non-printables are all rejected, not just ord(c) < 32).
 
     Raises SystemExit (loud failure) on any violation; returns True on pass.
     """
@@ -26,8 +28,10 @@ def validate_text(text):
         sys.exit("gate failed: text must be a single line")
     if not text.strip():
         sys.exit("gate failed: text is whitespace-only")
-    if any(ord(c) < 32 for c in text):
+    if any(ord(c) < 32 or 127 <= ord(c) <= 159 for c in text):
         sys.exit("gate failed: text contains a control character")
+    if not text.isprintable():
+        sys.exit("gate failed: text contains a non-printable character")
     return True
 
 
